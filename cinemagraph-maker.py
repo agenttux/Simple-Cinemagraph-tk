@@ -21,11 +21,17 @@ def on_button_press(event):
         pointCount = 1
         x1 = cv.canvasx(event.x)
         y1 = cv.canvasy(event.y)
+        x2 = 0
+        y2 = 0
         cv.delete(rect)
     if pointCount == 2:
         rect = cv.create_rectangle(x1, y1, x2, y2, outline="red")
     else:
         pass
+
+
+def exit_loop(event):
+    root.destroy()
 
 
 parser = argparse.ArgumentParser(
@@ -52,5 +58,9 @@ cv = tk.Canvas(width=imw, height=imh, cursor="cross")
 cv.create_image(0, 0, image=photo, anchor='nw')
 cv.pack(fill='both', expand='False')
 cv.bind("<ButtonPress-1>", on_button_press)
+cv.bind("<ButtonPress-3>", exit_loop)
 
 root.mainloop()
+
+print("First corner coordinates: ({0}, {1})".format(x1, y1))
+print("Second corner coordinates: ({0}, {1})".format(x2, y2))
