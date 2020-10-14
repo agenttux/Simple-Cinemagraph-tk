@@ -3,6 +3,7 @@ import tkinter as tk
 from PIL import Image, ImageTk
 import numpy as np
 import os
+from tqdm import tqdm
 
 x1, y1, x2, y2, pointCount = 0, 0, 0, 0, 0
 rect = None
@@ -40,8 +41,8 @@ parser = argparse.ArgumentParser(
 parser.add_argument('inputPath', help='path to video file')
 parser.add_argument('-o', '--outputPath',
                     help='path to output file (default is current directory)')
-parser.add_argument('-f', '--outputFile', default="output.png",
-                    help='name of output file (default is "output.png")')
+parser.add_argument('-f', '--outputFile', default="output.mp4",
+                    help='name of output file (default is "output.mp4")')
 
 args = parser.parse_args()
 
@@ -52,9 +53,9 @@ if os.path.isfile(args.inputPath) != 1:
 os.system("rm -rf tmp-cine-files")
 os.system("mkdir tmp-cine-files")
 os.system("ffmpeg  -hide_banner -i " + args.inputPath +
-          " -filter:v fps=fps=24 tmp-cine-files/$filename%d.png")
+          " -filter:v fps=fps=24 tmp-cine-files/$filename%05d.png")
 try:
-    im = Image.open("tmp-cine-files/1.png")
+    im = Image.open("tmp-cine-files/00001.png")
 except:
     print("Invalid video file!")
     os.system("rm -rf tmp-cine-files")
@@ -76,19 +77,22 @@ root.mainloop()
 print("First corner coordinates: ({0}, {1})".format(x1, y1))
 print("Second corner coordinates: ({0}, {1})".format(x2, y2))
 
+
 pixArray = np.array(im)
 cutArray = pixArray[int(y1):int(y2), int(x1):int(x2)]
-arr2im = Image.fromarray(cutArray)
-arr2im.save("gen.png")
 
-arr2im = Image.fromarray(pixArray)
-arr2im.save("before.png")
+fileList = os.listdir("tmp-cine-files")
 
-lastImage = np.array(Image.open("tmp-cine-files/150.png"))
-lastImage.setflags(write=1)
-lastImage[int(y1):int(y2), int(x1):int(x2)] = cutArray
+print("\nGenerating cinemagraph frames:")
 
-arr2im = Image.fromarray(lastImage)
-arr2im.save("after.png")
+for file in tqdm(fileList):
+    photoPath = "tmp-cine-files/" + str(file)
+    currentImage = np.array(Image.open(photoPath))
+    currentImage.setflags(write=1)
+    currentImage[int(y1):int(y2), int(x1):int(x2)] = cutArray
+    arr2im = Image.fromarray(currentImage)
+    arr2im.save(photoPath)
+
+os.system("ffmpeg -r 24 -f image2 -s 1920x1080 -start_number 1 -i tmp-cine-files/%05d.png -vframes 1000 -vcodec libx264 -crf 25  -pix_fmt yuv420p " + args.outputFile)
 
 os.system("rm -rf tmp-cine-files")
