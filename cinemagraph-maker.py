@@ -48,7 +48,17 @@ if os.path.isfile(args.inputPath) != 1:
     print("Not a vaild input file!")
     exit()
 
-im = Image.open(args.inputPath)
+os.system("rm -rf tmp-cine-files")
+os.system("mkdir tmp-cine-files")
+os.system("ffmpeg  -hide_banner -i " + args.inputPath +
+          " -filter:v fps=fps=24 tmp-cine-files/$filename%03d.png")
+try:
+    im = Image.open("tmp-cine-files/001.png")
+except:
+    print("Invalid video file!")
+    os.system("rm -rf tmp-cine-files")
+    exit()
+
 imw, imh = im.size  # get height and width of image
 
 root = tk.Tk()
@@ -64,3 +74,5 @@ root.mainloop()
 
 print("First corner coordinates: ({0}, {1})".format(x1, y1))
 print("Second corner coordinates: ({0}, {1})".format(x2, y2))
+
+os.system("rm -rf tmp-cine-files")
