@@ -1,6 +1,7 @@
 import argparse
 import tkinter as tk
 from PIL import Image, ImageTk
+import numpy as np
 import os
 
 x1, y1, x2, y2, pointCount = 0, 0, 0, 0, 0
@@ -51,9 +52,9 @@ if os.path.isfile(args.inputPath) != 1:
 os.system("rm -rf tmp-cine-files")
 os.system("mkdir tmp-cine-files")
 os.system("ffmpeg  -hide_banner -i " + args.inputPath +
-          " -filter:v fps=fps=24 tmp-cine-files/$filename%03d.png")
+          " -filter:v fps=fps=24 tmp-cine-files/$filename%d.png")
 try:
-    im = Image.open("tmp-cine-files/001.png")
+    im = Image.open("tmp-cine-files/1.png")
 except:
     print("Invalid video file!")
     os.system("rm -rf tmp-cine-files")
@@ -74,5 +75,20 @@ root.mainloop()
 
 print("First corner coordinates: ({0}, {1})".format(x1, y1))
 print("Second corner coordinates: ({0}, {1})".format(x2, y2))
+
+pixArray = np.array(im)
+cutArray = pixArray[int(y1):int(y2), int(x1):int(x2)]
+arr2im = Image.fromarray(cutArray)
+arr2im.save("gen.png")
+
+arr2im = Image.fromarray(pixArray)
+arr2im.save("before.png")
+
+lastImage = np.array(Image.open("tmp-cine-files/150.png"))
+lastImage.setflags(write=1)
+lastImage[int(y1):int(y2), int(x1):int(x2)] = cutArray
+
+arr2im = Image.fromarray(lastImage)
+arr2im.save("after.png")
 
 os.system("rm -rf tmp-cine-files")
